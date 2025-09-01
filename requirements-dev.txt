@@ -1,0 +1,8 @@
+# Development dependencies
+# Install with: pip install -r requirements-dev.txt
+
+
+# Pre-commit hooks
+pre-commit>=3.0.0
+# Code quality and formatting
+ruff>=0.1.0
