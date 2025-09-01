@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  fridapk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VCS_REF: ${VCS_REF:-}
+    image: fridapk:latest
+    container_name: fridapk
+    volumes:
+      # Mount workspace directory
+      - ./workspace:/home/fridapk/workspace
+      # Persist gadgets directory
+      - fridapk-gadgets:/home/fridapk/.fridapk/gadgets
+      # Mount USB devices for ADB (Linux only)
+      - /dev/bus/usb:/dev/bus/usb:ro
+    privileged: true  # Required for USB device access
+    stdin_open: true  # Keep STDIN open
+    tty: true        # Allocate a pseudo-TTY
+    working_dir: /home/fridapk/workspace
+    environment:
+      - DISPLAY=${DISPLAY:-}
+      - ANDROID_HOME=/opt/android-sdk
+      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    ports:
+      - "5037:5037"  # ADB port
+    networks:
+      - fridapk-network
+
+  # Service for running without device access (safer)
+  fridapk-safe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fridapk:latest
+    container_name: fridapk-safe
+    volumes:
+      - ./workspace:/home/fridapk/workspace
+      - fridapk-gadgets:/home/fridapk/.fridapk/gadgets
+    stdin_open: true
+    tty: true
+    working_dir: /home/fridapk/workspace
+    environment:
+      - ANDROID_HOME=/opt/android-sdk
+      - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+    networks:
+      - fridapk-network
+
+volumes:
+  fridapk-gadgets:
+    driver: local
+
+networks:
+  fridapk-network:
+    driver: bridge

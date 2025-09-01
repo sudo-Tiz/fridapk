@@ -1,0 +1,65 @@
+# Docker ignore file for FridAPK
+# Exclude unnecessary files from Docker build context
+
+# Git files
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# FridAPK specific
+gadgets/
+fridapkkeystore
+*.apk
+workspace/
+temp/
+output/
+
+# Documentation drafts
+*.draft.md
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Test files
+tests/__pycache__/
+.coverage
+htmlcov/
+
+# Local configuration
+.env
+.env.local
