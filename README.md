@@ -2,24 +2,7 @@
 
 > **🔥 Automatically patch Android APKs with Frida Gadget**
 
-FridAPK is a powerful tool that automates the inje```bash
-# Auto-load JavaScript hook
-fridapk -a app.apk --autoload-script hook.js
-
-# Force resource extraction
-fridapk -a app.apk --force-resources
-
-# Wait before repackaging (for manual modifications)
-fridapk -a app.apk --wait
-
-# Execute custom command before repackaging
-fridapk -a app.apk --exec-command "find TMP_PATH_HERE -name '*.so'" --pass-temp-path
-
-# Use aapt2 for building
-fridapk -a app.apk --use-aapt2
-
-# Combine multiple options
-fridapk -a app.apk --enable-user-certs --autoload-script hook.js --keep-keystoreget into Android APKs, enabling dynamic analysis and reverse engineering without root access. It provides a clean, modular architecture with Docker support for easy deployment.
+FridAPK is a powerful tool that automates the injection of Frida Gadget into Android APKs, enabling dynamic analysis and reverse engineering without root access. It provides a clean, modular architecture with Docker support for easy deployment.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -105,14 +88,15 @@ pip3 install requests frida frida-tools
 #### Installation
 
 ```bash
-```bash
-```bash
 git clone https://github.com/sudo-Tiz/fridapk
 cd fridapk
 pip3 install -r requirements.txt
 
-# Run tests
-python -m pytest tests/
+# Make executable
+chmod +x fridapk
+
+# Test installation
+./fridapk --help
 ```
 
 ## 📖 Usage Guide
@@ -189,7 +173,6 @@ ls gadgets/$(frida --version)/
 ### File Structure
 
 ```
-```
 fridapk/
 ├── src/                    # Python source code
 │   ├── core/              # Core functionality
@@ -233,7 +216,7 @@ For device architecture detection:
 
 1. Enable USB debugging on your Android device
 2. Connect device via USB
-3. Run APK Patcher - it will automatically detect architecture
+3. Run FridAPK - it will automatically detect architecture
 
 ### ADB over WiFi
 
