@@ -54,10 +54,16 @@ class Logger:
 
     def confirm(self, msg: str) -> bool:
         """Ask for user confirmation"""
-        answer = input(f"{Colors.YELLOW}[?] {msg} (y/N): {Colors.ENDC}")
-        return answer.lower() in ("y", "yes")
+        try:
+            answer = input(f"{Colors.YELLOW}[?] {msg} (y/N): {Colors.ENDC}")
+            return answer.lower() in ("y", "yes")
+        except (KeyboardInterrupt, EOFError):
+            return False
 
     def critical_confirm(self, msg: str) -> bool:
         """Ask for critical confirmation"""
-        answer = input(f"{Colors.RED}[!] {msg} (y/N) {Colors.ENDC}")
-        return answer.lower() in ("y", "yes")
+        try:
+            answer = input(f"{Colors.RED}[!] {msg} (y/N) {Colors.ENDC}")
+            return answer.lower() in ("y", "yes")
+        except (KeyboardInterrupt, EOFError):
+            return False

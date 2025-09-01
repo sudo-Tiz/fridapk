@@ -14,7 +14,7 @@ from config import Config
 from core.apk_processor import APKProcessor
 from core.dependencies import DependencyChecker
 from core.gadgets import GadgetManager
-from exceptions import FridAPKError
+from exceptions import FridAPKError, GadgetError
 from utils.logger import Logger, VerbosityLevel
 
 
@@ -120,9 +120,7 @@ class FridAPK:
 
             # Inject Frida gadget if not prevented
             if not args.prevent_gadget:
-                success = self._inject_frida_gadget(args, apk_path, temp_dir)
-                if not success:
-                    return 1
+                self._inject_frida_gadget(args, apk_path, temp_dir)
 
             # Execute custom command if provided
             if args.exec_command and not self._execute_custom_command(args, temp_dir):
@@ -272,40 +270,24 @@ class FridAPK:
 
         self.logger.info("Network security config reference added to manifest")
 
-    def _inject_frida_gadget(self, args, apk_path: Path, temp_dir: Path) -> bool:
+    def _inject_frida_gadget(self, args, apk_path: Path, temp_dir: Path) -> None:
         """Inject Frida gadget into APK"""
         try:
-            # Get gadget to use
-            if args.gadget:
-                gadget_path = args.gadget
-                self.logger.info(f"Using specified gadget: {gadget_path}")
-            else:
-                gadget_path = self.gadget_manager.get_recommended_gadget()
-                if not gadget_path:
-                    self.logger.error("Could not find appropriate Frida gadget")
-                    return False
+            self.logger.info("Injecting Frida gadget...")
 
-            # Get main activity
-            main_activity = self.apk_processor.get_main_activity(apk_path)
-            if not main_activity:
-                return False
-
-            # Find smali file
-            smali_path = self._find_smali_file(temp_dir, main_activity)
-            if not smali_path:
-                return False
-
-            # Inject loader code
-            self._inject_frida_loader(smali_path)
+            # Determine gadget
+            gadget_path = self._determine_gadget(args, apk_path)
+            if not gadget_path:
+                raise GadgetError("No suitable gadget found")
 
             # Copy gadget files
             self._copy_gadget_files(temp_dir, gadget_path, args.autoload_script)
 
-            return True
+            self.logger.success("Frida gadget injected successfully")
 
         except Exception as e:
             self.logger.error(f"Gadget injection failed: {e}")
-            return False
+            raise
 
     def _find_smali_file(self, temp_dir: Path, activity_class: str) -> Path:
         """Find smali file for given activity class"""
@@ -383,6 +365,29 @@ class FridAPK:
             f.write(new_content)
 
         self.logger.success("Frida loader injected into smali file")
+
+    def _determine_gadget(self, args, apk_path: Path) -> Path:
+        """Determine which Frida gadget to use"""
+        # If user provided specific gadget, use it
+        if args.gadget:
+            gadget_path = Path(args.gadget)
+            if not gadget_path.exists():
+                raise GadgetError(f"Specified gadget not found: {gadget_path}")
+            return gadget_path
+
+        # Otherwise, use GadgetManager to get recommended gadget
+        try:
+            gadget_path = self.gadget_manager.get_recommended_gadget()
+            if not gadget_path:
+                raise GadgetError(
+                    "No suitable gadget found. Run --update-gadgets first."
+                )
+
+            self.logger.info(f"Using gadget: {gadget_path.name}")
+            return gadget_path
+
+        except Exception as e:
+            raise GadgetError(f"Failed to determine gadget: {e}") from e
 
     def _copy_gadget_files(
         self, temp_dir: Path, gadget_path: Path, autoload_script: Path = None
@@ -472,8 +477,23 @@ class FridAPK:
 
         try:
             self.logger.info(f"Executing: {command}")
-            result = subprocess.run(command, shell=True, cwd=temp_dir)
+            # Security: Use shell=False when possible, limit to basic commands
+            import shlex
+
+            cmd_parts = shlex.split(command)
+            result = subprocess.run(
+                cmd_parts, cwd=temp_dir, capture_output=True, text=True
+            )
+
+            if result.stdout:
+                self.logger.debug(f"Command output: {result.stdout}")
+            if result.stderr:
+                self.logger.warning(f"Command stderr: {result.stderr}")
+
             return result.returncode == 0
+        except (ValueError, FileNotFoundError) as e:
+            self.logger.error(f"Invalid command: {e}")
+            return False
         except Exception as e:
             self.logger.error(f"Command execution failed: {e}")
             return False
