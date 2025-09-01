@@ -1,32 +1,35 @@
-version: '3.8'
+---
+name: fridapk
 
 services:
   # Safe mode - isolated container without USB access
   fridapk-safe:
     image: ghcr.io/sudo-tiz/fridapk:latest
     # Fallback to local build if image not available
-    build: .
+    build:
+      context: .
     volumes:
-      - ./workspace:/home/fridapk/workspace
-    working_dir: /home/fridapk
+      - ./workspace:/workspace
+    working_dir: /workspace
+    user: "${UID:-1000}:${GID:-1000}"
     command: bash
     stdin_open: true
     tty: true
     environment:
       - FRIDAPK_MODE=safe
-    profiles:
-      - safe
-      - all
+      - FRIDAPK_GADGETS_DIR=/fridapk/gadgets
 
   # Device access mode - with USB access for real device testing
   fridapk-usb:
     image: ghcr.io/sudo-tiz/fridapk:latest
     # Fallback to local build if image not available
-    build: .
+    build:
+      context: .
     volumes:
-      - ./workspace:/home/fridapk/workspace
+      - ./workspace:/workspace
       - /dev/bus/usb:/dev/bus/usb
-    working_dir: /home/fridapk
+    working_dir: /workspace
+    user: "${UID:-1000}:${GID:-1000}"
     privileged: true
     devices:
       - /dev/bus/usb
@@ -35,6 +38,24 @@ services:
     tty: true
     environment:
       - FRIDAPK_MODE=usb
-    profiles:
-      - usb
-      - all
+      - FRIDAPK_GADGETS_DIR=/fridapk/gadgets
+
+  # Development mode - mount source code for live editing
+  fridapk-dev:
+    image: fridapk-local
+    # Build locally for development
+    build:
+      context: .
+    volumes:
+      - ./workspace:/workspace
+      - ./src:/fridapk/src
+      - ./fridapk:/fridapk/fridapk
+    working_dir: /workspace
+    user: "${UID:-1000}:${GID:-1000}"
+    command: bash
+    stdin_open: true
+    tty: true
+    environment:
+      - FRIDAPK_MODE=safe
+      - FRIDAPK_GADGETS_DIR=/fridapk/gadgets
+      - PYTHONPATH=/fridapk/src

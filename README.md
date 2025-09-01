@@ -34,8 +34,11 @@ docker run -it --rm -v $(pwd):/workspace ghcr.io/sudo-tiz/fridapk:latest fridapk
 git clone https://github.com/sudo-Tiz/fridapk
 cd fridapk
 
-make docker-safe   # Safe mode (no USB)
-make docker-usb    # USB access mode
+make docker-safe   # Interactive safe mode
+make docker-usb    # Interactive USB mode
+
+# Or one-shot commands
+make docker-run ARGS="-a /workspace/app.apk"
 ```
 
 ### Local Installation
@@ -72,14 +75,15 @@ fridapk -a app.apk --autoload-script hook.js
 ### Docker Usage
 
 ```bash
-# Using docker-compose
-docker-compose exec fridapk-safe fridapk -a /home/fridapk/workspace/app.apk
+# Interactive shell with docker-compose
+make docker-safe   # Opens interactive bash in safe mode
+make docker-usb    # Opens interactive bash with USB access
+
+# One-shot patching
+make docker-run ARGS="-a /workspace/app.apk"
 
 # Direct docker run
-docker run -it --rm -v $(pwd):/workspace ghcr.io/sudo-tiz/fridapk:latest fridapk -a /workspace/app.apk
-
-# With USB access for device detection
-docker run -it --rm --privileged -v /dev/bus/usb:/dev/bus/usb -v $(pwd):/workspace ghcr.io/sudo-tiz/fridapk:latest
+docker run -it --rm -v $(pwd)/workspace:/workspace ghcr.io/sudo-tiz/fridapk:latest fridapk -a /workspace/app.apk
 ```
 
 ## 🛠️ Advanced Options

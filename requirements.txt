@@ -1,6 +1,6 @@
-requests>=2.25.0
 frida>=16.0.0
 frida-tools>=12.0.0
+requests>=2.25.0
 
 # Development tools (install locally for development)
 #pre-commit>=3.0.0

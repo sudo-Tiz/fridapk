@@ -1,40 +1,46 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-FridAPK - Custom exceptions
+FridAPK - Custom exception classes
 """
 
 
-class APKPatcherError(Exception):
-    """Base exception for FridAPK"""
+class FridAPKError(Exception):
+    """Base exception for FridAPK errors"""
+
     pass
 
 
-class DependencyError(APKPatcherError):
-    """Raised when a required dependency is missing"""
+class DependencyError(FridAPKError):
+    """Raised when required dependencies are missing"""
+
     pass
 
 
-class APKError(APKPatcherError):
-    """Raised when APK processing fails"""
+class APKError(FridAPKError):
+    """Raised when APK operation fails"""
+
     pass
 
 
-class GadgetError(APKPatcherError):
-    """Raised when Frida gadget operations fail"""
+class GadgetError(FridAPKError):
+    """Raised when Frida Gadget operation fails"""
+
     pass
 
 
 class ExtractionError(APKError):
     """Raised when APK extraction fails"""
+
     pass
 
 
 class RepackageError(APKError):
     """Raised when APK repackaging fails"""
+
     pass
 
 
 class SigningError(APKError):
     """Raised when APK signing fails"""
+
     pass

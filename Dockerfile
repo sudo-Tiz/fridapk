@@ -78,41 +78,43 @@ RUN ln -sf ${ANDROID_HOME}/build-tools/33.0.2/aapt /usr/local/bin/aapt && \
     ln -sf ${ANDROID_HOME}/build-tools/33.0.2/apksigner /usr/local/bin/apksigner && \
     ln -sf ${ANDROID_HOME}/platform-tools/adb /usr/local/bin/adb
 
+# Download and install Frida gadgets directly to final location
+RUN set -e && \
+    echo "Downloading Frida gadgets..." && \
+    mkdir -p /fridapk/gadgets && \
+    VERSION=$(curl -s https://api.github.com/repos/frida/frida/releases/latest | grep '"tag_name":' | cut -d'"' -f4) && \
+    echo "Latest Frida version: $VERSION" && \
+    for ARCH in android-arm android-arm64 android-x86 android-x86_64; do \
+        echo "Downloading gadget for $ARCH..." && \
+        wget -q "https://github.com/frida/frida/releases/download/$VERSION/frida-gadget-$VERSION-$ARCH.so.xz" -O "/tmp/gadget.xz" && \
+        unxz -c "/tmp/gadget.xz" > "/fridapk/gadgets/frida-gadget-$ARCH.so" && \
+        rm "/tmp/gadget.xz" && \
+        echo "Extracted: frida-gadget-$ARCH.so"; \
+    done && \
+    echo "All Frida gadgets downloaded successfully"
+
 # Create non-root user for security
 RUN groupadd -r fridapk && \
-    useradd -r -g fridapk -m -s /bin/bash fridapk && \
-    mkdir -p /home/fridapk/workspace && \
-    chown -R fridapk:fridapk /home/fridapk
+    useradd -r -g fridapk -s /bin/bash fridapk
 
 # Copy FridAPK source code
-COPY --chown=fridapk:fridapk . /fridapk/
+COPY . /fridapk/
 
-# Make scripts executable
-RUN chmod +x /fridapk/apkpatcher_new && \
-    chmod +x /fridapk/apkpatcher
+# Set permissions and make executable
+RUN chown -R fridapk:fridapk /fridapk && \
+    chmod +x /fridapk/fridapk
 
 # Switch to non-root user
 USER fridapk
 
-# Create gadgets directory
-RUN mkdir -p /home/fridapk/.fridapk/gadgets
-
 # Set environment variables for FridAPK
-ENV FRIDAPK_HOME=/home/fridapk/.fridapk
+ENV FRIDAPK_GADGETS_DIR=/fridapk/gadgets
+ENV FRIDAPK_TEMP_DIR=/tmp/fridapk
 ENV PATH=/fridapk:${PATH}
+ENV PYTHONPATH=/fridapk/src
 
 # Expose ADB port (for device connection)
 EXPOSE 5037
-
-# Set default working directory for user
-WORKDIR /home/fridapk/workspace
-
-# Health check to verify all tools are working
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python3 -c "import frida; print('Frida:', frida.__version__)" && \
-        apktool --version && \
-        aapt version && \
-        echo "FridAPK Docker environment is healthy"
 
 # Default command
 CMD ["/bin/bash"]

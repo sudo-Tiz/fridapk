@@ -1,6 +1,6 @@
 # FridAPK Utils module
 
-from .logger import Logger, VerbosityLevel
 from .colors import Colors
+from .logger import Logger, VerbosityLevel
 
-__all__ = ['Logger', 'VerbosityLevel', 'Colors']
+__all__ = ["Logger", "VerbosityLevel", "Colors"]

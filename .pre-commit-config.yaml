@@ -1,20 +1,36 @@
 repos:
+  # Enhanced pre-commit hooks for better code quality
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0 # Latest stable version
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-merge-conflict
+      - id: fix-byte-order-marker
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: debug-statements # Prevents debug prints in commits
+      - id: end-of-file-fixer # Ensures files end with a newline
+      - id: trailing-whitespace # Removes trailing whitespace
+      - id: mixed-line-ending # Converts mixed line endings to LF
+        args: ["--fix=lf"] # Unix-style line endings
+      - id: check-added-large-files # Warns on large files
+        args: ["--maxkb=500"] # 500KB limit for APK tools
+      - id: check-merge-conflict # Prevents unresolved merge conflicts
+      - id: check-executables-have-shebangs
+      - id: requirements-txt-fixer
+      - id: check-yaml # YAML syntax validation
+      - id: check-toml # TOML syntax validation
+      - id: check-json # JSON syntax validation
 
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
+  # Ruff - Modern Python linter and formatter (replaces black + flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.10
     hooks:
-      - id: black
-        args: [--line-length=88]
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+      - id: ruff-format
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  # isort for consistent import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 6.0.1
     hooks:
-      - id: flake8
-        args: [--max-line-length=88, --ignore=E203,W503]
+      - id: isort
+        args: ["--profile", "black", "--line-length", "88"]
