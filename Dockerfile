@@ -1,7 +1,7 @@
 # FridAPK Docker Environment
 # Based on Ubuntu 22.04 LTS with all required dependencies
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
